@@ -3,54 +3,33 @@ import axios from 'axios';
 import { BiSearchAlt2 } from 'react-icons/bi';
 import styled from 'styled-components';
 import { debounce } from 'lodash';
+import SearchResultList from './components/SearchResultList';
 
 export default function Search() {
   const [isListVisible, setIsListVisible] = useState(false);
   const [searchWordBold, setSearchWordBold] = useState('');
-  //   const [searchMode, setSearchMode] = useState(false);
-  // 주석
-  const highlightIncludedText = (text, value) => {
-    const title = text.toLowerCase();
-    const searchValue = value.toLowerCase();
-    if (searchValue !== '' && title.includes(searchValue)) {
-      const matchText = text.split(new RegExp(`(${searchValue})`, 'gi'));
-
-      return (
-        <>
-          {matchText.map((text, index) =>
-            text.toLowerCase() === searchValue.toLowerCase() ? (
-              <span key={index} style={{ fontWeight: 700 }}>
-                {text}
-              </span>
-            ) : (
-              text
-            )
-          )}
-        </>
-      );
-    }
-
-    return text;
-  };
-  useEffect(() => {
-    const search = document.querySelector('input[type="search"]');
-    search.addEventListener('focusin', _ => setIsListVisible(true));
-    search.addEventListener('focusout', _ => {
-      setIsListVisible(false);
-      setSearchList([]);
-    });
-  }, []);
   const [searchList, setSearchList] = useState([]);
 
   const getSearchList = async str => {
     const cachedData = JSON.parse(sessionStorage.getItem('searchCache'));
+
+    // 캐싱된 데이터인 경우 캐싱 데이터 사용
     if (Object.keys(cachedData).includes(str)) return setSearchList(cachedData[str]);
 
     const res = await axios.get(`http://localhost:4000/sick?q=${str}`);
-    if (res.data.length === 0) return;
+
+    if (res.data.length === 0) {
+      setSearchList([]);
+      return;
+    }
+
+    console.info('api calling');
+
+    if (res.data.length > 10) return setSearchList(res.data.slice(0, 10));
+
+    // LocalStorage에 response 결과 캐싱
     const newObj = { ...JSON.parse(sessionStorage.getItem('searchCache')), [`${str}`]: res.data };
     sessionStorage.setItem('searchCache', JSON.stringify(newObj));
-    if (res.data.length > 10) return setSearchList(res.data.slice(0, 10));
     setSearchList(res.data);
   };
 
@@ -61,9 +40,18 @@ export default function Search() {
 
   const debounceOnChangeKeyword = debounce(async str => {
     if (str.length === 0) return;
-    //   setSearchMode(false);
+
     getSearchList(str);
-  }, 1000);
+  }, 400);
+
+  useEffect(() => {
+    const search = document.querySelector('input[type="search"]');
+    search.addEventListener('focusin', _ => setIsListVisible(true));
+    search.addEventListener('focusout', _ => {
+      setIsListVisible(false);
+      setSearchList([]);
+    });
+  }, []);
 
   return (
     <Wrap>
@@ -87,31 +75,7 @@ export default function Search() {
             </Button>
           </Border>
           {isListVisible && (
-            <SearchListWrap>
-              <List>
-                {searchList.length === 0 ? (
-                  <ul>
-                    <li>
-                      <ListItem>
-                        <BiSearchAlt2 fill="#a7afb7" />
-                        <Item>검색어 없음</Item>
-                      </ListItem>
-                    </li>
-                  </ul>
-                ) : (
-                  <ul>
-                    {searchList?.map(item => (
-                      <li key={item.sickCd}>
-                        <ListItem>
-                          <BiSearchAlt2 fill="#a7afb7" />
-                          <Item>{highlightIncludedText(item.sickNm, searchWordBold)}</Item>
-                        </ListItem>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </List>
-            </SearchListWrap>
+            <SearchResultList searchList={searchList} searchWordBold={searchWordBold} />
           )}
         </SearchWrap>
       </InnerWrap>
@@ -208,45 +172,4 @@ const Input = styled.input`
     background: url('searchClear.svg') no-repeat center;
     cursor: pointer;
   }
-`;
-
-const SearchListWrap = styled.div`
-  width: 100%;
-  position: absolute;
-  top: 70px;
-  left: 0;
-  right: 0;
-  border-radius: 15px;
-  border-color: #ffffff;
-  background-color: #ffffff;
-  box-shadow: 0 1px 6px 0 rgba(147, 150, 160, 0.28);
-`;
-
-const List = styled.div`
-  ul {
-    list-style: none;
-    padding: 15px 0;
-    overflow: hidden;
-  }
-  li {
-    padding: 10px 20px;
-    :hover {
-      background-color: #f8f9fa;
-      cursor: pointer;
-    }
-  }
-`;
-
-const ListItem = styled.div`
-  display: flex;
-  align-items: center;
-  & svg {
-    width: 21px;
-    height: 21px;
-    fill: #a7afb7;
-  }
-`;
-
-const Item = styled.div`
-  margin-left: 8px;
 `;
