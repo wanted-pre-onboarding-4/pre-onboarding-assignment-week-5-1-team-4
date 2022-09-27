@@ -20,12 +20,15 @@ export default function Search() {
   const [searchList, setSearchList] = useState([]);
 
   const getSearchList = async str => {
+    const cachedData = JSON.parse(sessionStorage.getItem('searchCache'));
+    if (Object.keys(cachedData).includes(str)) return setSearchList(cachedData[str]);
+
     const res = await axios.get(`http://localhost:4000/sick?q=${str}`);
-    console.info('calling api');
-    console.log(res.data);
+    if (res.data.length === 0) return;
+    const newObj = { ...JSON.parse(sessionStorage.getItem('searchCache')), [`${str}`]: res.data };
+    sessionStorage.setItem('searchCache', JSON.stringify(newObj));
     if (res.data.length > 10) return setSearchList(res.data.slice(0, 10));
     setSearchList(res.data);
-    //  setSearchMode(true);
   };
 
   const onChangeKeyword = event => {
@@ -37,7 +40,6 @@ export default function Search() {
     //   setSearchMode(false);
     getSearchList(str);
   }, 1000);
-
   return (
     <Wrap>
       <InnerWrap>
