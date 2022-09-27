@@ -1,13 +1,40 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import SearchList from '../components/SearchList';
 import { BiSearch } from 'react-icons/bi';
+import { SearchContext } from '../store/search';
+import searchApi from '../services/api';
 const Search = () => {
+  const { searches } = useContext(SearchContext);
+  const [searchText, setSearchText] = useState('');
+
+  const onSearchSubmit = e => {
+    e.preventDefault();
+    setSearchText('');
+  };
+
+  const onSearchChange = e => {
+    const text = e.target.value;
+    setSearchText(text);
+  };
+
+  useEffect(() => {
+    const getApi = async () => {
+      const result = await searchApi('담낭');
+      console.log(result);
+    };
+    getApi();
+  }, []);
+
   return (
     <Wrap>
       <Title>국내 모든 임상시험 검색하고 온라인으로 참여하기</Title>
-      <SearchSection>
-        <SearchInput placeholder="🔍 검색어를 입력해주세요"></SearchInput>
+      <SearchSection onSubmit={onSearchSubmit}>
+        <SearchInput
+          onChange={onSearchChange}
+          value={searchText}
+          placeholder="🔍 검색어를 입력해주세요"
+        ></SearchInput>
         <Button>
           <BiSearch />
         </Button>
@@ -37,7 +64,7 @@ const Title = styled.h1`
   font-size: 1.5em;
   margin-top: 90px;
 `;
-const SearchSection = styled.div`
+const SearchSection = styled.form`
   display: flex;
   align-items: center;
   background-color: white;
