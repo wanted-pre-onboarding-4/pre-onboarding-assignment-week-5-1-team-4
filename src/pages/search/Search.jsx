@@ -7,6 +7,7 @@ import { debounce } from 'lodash';
 export default function Search() {
   const [isListVisible, setIsListVisible] = useState(false);
   //   const [searchMode, setSearchMode] = useState(false);
+  // 주석
 
   useEffect(() => {
     const search = document.querySelector('input[type="search"]');
