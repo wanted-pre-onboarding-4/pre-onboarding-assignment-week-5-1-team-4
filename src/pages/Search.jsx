@@ -4,10 +4,11 @@ import SearchList from '../components/SearchList';
 import { BiSearch } from 'react-icons/bi';
 import { SearchContext } from '../store/search';
 import searchApi from '../services/api';
+import useDebounce from '../hooks/useDebounce';
 const Search = () => {
-  const { searches } = useContext(SearchContext);
+  const { searches, setSearches } = useContext(SearchContext);
   const [searchText, setSearchText] = useState('');
-
+  const [results, setResults] = useState([]);
   const onSearchSubmit = e => {
     e.preventDefault();
     setSearchText('');
@@ -17,14 +18,22 @@ const Search = () => {
     const text = e.target.value;
     setSearchText(text);
   };
+  const debouncedSearchText = useDebounce(searchText, 200);
 
   useEffect(() => {
+    if (debouncedSearchText === '') return;
+    if (searches[debouncedSearchText]) {
+      setResults(searches[debouncedSearchText]);
+      return;
+    }
+
     const getApi = async () => {
-      const result = await searchApi('담낭');
-      console.log(result);
+      const results = await searchApi(debouncedSearchText);
+      setSearches(prev => ({ ...prev, [debouncedSearchText]: results.data }));
+      setResults(results.data);
     };
     getApi();
-  }, []);
+  }, [debouncedSearchText]);
 
   return (
     <Wrap>
@@ -41,7 +50,11 @@ const Search = () => {
       </SearchSection>
       <SearchResult>
         <SearchListTitle>추천 검색어</SearchListTitle>
-        <SearchList></SearchList>
+        {results.length === 0 || searchText === '' ? (
+          <div>검색어 없음</div>
+        ) : (
+          <SearchList results={results} searchText={searchText} />
+        )}
       </SearchResult>
     </Wrap>
   );
