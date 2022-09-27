@@ -5,10 +5,18 @@ import { BiSearch } from 'react-icons/bi';
 import { SearchContext } from '../store/search';
 import searchApi from '../services/api';
 import useDebounce from '../hooks/useDebounce';
+import { useRef } from 'react';
+
+const ArrowDown = 'ArrowDown';
+const ArrowUp = 'ArrowUp';
+const Escape = 'Escape';
+
 const Search = () => {
   const { searches, setSearches } = useContext(SearchContext);
   const [searchText, setSearchText] = useState('');
   const [results, setResults] = useState([]);
+  const [index, setIndex] = useState(-1);
+
   const onSearchSubmit = e => {
     e.preventDefault();
     setSearchText('');
@@ -17,6 +25,7 @@ const Search = () => {
   const onSearchChange = e => {
     const text = e.target.value;
     setSearchText(text);
+    setIndex(-1);
   };
   const debouncedSearchText = useDebounce(searchText, 200);
 
@@ -35,6 +44,46 @@ const Search = () => {
     getApi();
   }, [debouncedSearchText]);
 
+  const autoRef = useRef(null);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    console.log('index', index);
+  }, [index]);
+
+  const handleKeyArrow = e => {
+    if (results.length > 0) {
+      switch (e.key) {
+        case ArrowDown:
+          if (index === results.length - 1) {
+            setIndex(0);
+            scrollRef.current?.scrollIntoView({ bebehavior: 'smooth', block: 'center' });
+            return;
+          }
+          setIndex(pre => pre + 1);
+          scrollRef.current?.scrollIntoView({ bebehavior: 'smooth', block: 'center' });
+          if (autoRef.current.childElementCount === index + 1) setIndex(0);
+          break;
+        case ArrowUp:
+          if (index === 0) {
+            setIndex(results.length - 1);
+            scrollRef.current?.scrollIntoView({ bebehavior: 'smooth', block: 'center' });
+            return;
+          }
+
+          setIndex(pre => pre - 1);
+          scrollRef.current?.scrollIntoView({ bebehavior: 'smooth', block: 'center' });
+          break;
+        case Escape: // esc key를 눌렀을때,
+          setResults([]);
+          setIndex(-1);
+          break;
+        default:
+          return;
+      }
+    }
+  };
+
   return (
     <Wrap>
       <Title>국내 모든 임상시험 검색하고 온라인으로 참여하기</Title>
@@ -43,6 +92,9 @@ const Search = () => {
           onChange={onSearchChange}
           value={searchText}
           placeholder="🔍 검색어를 입력해주세요"
+          ref={autoRef}
+          onKeyDown={handleKeyArrow}
+          autoFocus
         ></SearchInput>
         <Button>
           <BiSearch />
@@ -53,7 +105,13 @@ const Search = () => {
         {results.length === 0 || searchText === '' ? (
           <div>검색어 없음</div>
         ) : (
-          <SearchList results={results} searchText={searchText} />
+          <SearchList
+            ref={scrollRef}
+            results={results}
+            index={index}
+            setResults={setResults}
+            searchText={searchText}
+          />
         )}
       </SearchResult>
     </Wrap>
