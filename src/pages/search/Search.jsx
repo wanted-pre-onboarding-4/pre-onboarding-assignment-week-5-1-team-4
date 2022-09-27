@@ -6,9 +6,32 @@ import { debounce } from 'lodash';
 
 export default function Search() {
   const [isListVisible, setIsListVisible] = useState(false);
+  const [searchWordBold, setSearchWordBold] = useState('');
   //   const [searchMode, setSearchMode] = useState(false);
   // 주석
+  const highlightIncludedText = (text, value) => {
+    const title = text.toLowerCase();
+    const searchValue = value.toLowerCase();
+    if (searchValue !== '' && title.includes(searchValue)) {
+      const matchText = text.split(new RegExp(`(${searchValue})`, 'gi'));
 
+      return (
+        <>
+          {matchText.map((text, index) =>
+            text.toLowerCase() === searchValue.toLowerCase() ? (
+              <span key={index} style={{ fontWeight: 700 }}>
+                {text}
+              </span>
+            ) : (
+              text
+            )
+          )}
+        </>
+      );
+    }
+
+    return text;
+  };
   useEffect(() => {
     const search = document.querySelector('input[type="search"]');
     search.addEventListener('focusin', _ => setIsListVisible(true));
@@ -33,6 +56,7 @@ export default function Search() {
 
   const onChangeKeyword = event => {
     debounceOnChangeKeyword(event.target.value);
+    setSearchWordBold(event.target.value);
   };
 
   const debounceOnChangeKeyword = debounce(async str => {
@@ -40,6 +64,7 @@ export default function Search() {
     //   setSearchMode(false);
     getSearchList(str);
   }, 1000);
+
   return (
     <Wrap>
       <InnerWrap>
@@ -79,7 +104,7 @@ export default function Search() {
                       <li key={item.sickCd}>
                         <ListItem>
                           <BiSearchAlt2 fill="#a7afb7" />
-                          <Item>{item.sickNm}</Item>
+                          <Item>{highlightIncludedText(item.sickNm, searchWordBold)}</Item>
                         </ListItem>
                       </li>
                     ))}
