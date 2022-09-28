@@ -4,6 +4,7 @@ import { BiSearchAlt2 } from 'react-icons/bi';
 import styled from 'styled-components';
 import { debounce } from 'lodash';
 import SearchResultList from './components/SearchResultList';
+import { cacheToSession } from '../../utils/cacheToSession';
 
 export default function Search() {
   const [isListVisible, setIsListVisible] = useState(false);
@@ -13,44 +14,33 @@ export default function Search() {
   const getSearchList = async str => {
     const cachedData = JSON.parse(sessionStorage.getItem('searchCache'));
 
-    // 캐싱된 데이터인 경우 캐싱 데이터 사용
-    if (Object.keys(cachedData).includes(str)) return setSearchList(cachedData[str]);
+    if (cachedData && Object.keys(cachedData).includes(str)) return setSearchList(cachedData[str]);
 
     const res = await axios.get(`http://localhost:4000/sick?q=${str}`);
-
-    if (res.data.length === 0) {
-      setSearchList([]);
-      return;
-    }
-
     console.info('api calling');
 
-    if (res.data.length > 10) return setSearchList(res.data.slice(0, 10));
-
-    // LocalStorage에 response 결과 캐싱
-    const newObj = { ...JSON.parse(sessionStorage.getItem('searchCache')), [`${str}`]: res.data };
-    sessionStorage.setItem('searchCache', JSON.stringify(newObj));
-    setSearchList(res.data);
+    const searchResult = cacheToSession(res.data, cachedData, str);
+    setSearchList(searchResult);
   };
 
   const onChangeKeyword = event => {
-    debounceOnChangeKeyword(event.target.value);
-    setSearchWordBold(event.target.value);
+    const { value } = event.target;
+    debounceOnChangeKeyword(value);
   };
 
-  const debounceOnChangeKeyword = debounce(async str => {
-    if (str.length === 0) return;
-
-    getSearchList(str);
-  }, 400);
+  const debounceOnChangeKeyword = debounce(async value => {
+    if (value) {
+      getSearchList(value);
+      setSearchWordBold(value);
+      return;
+    }
+    setSearchList([]);
+  }, 500);
 
   useEffect(() => {
     const search = document.querySelector('input[type="search"]');
     search.addEventListener('focusin', _ => setIsListVisible(true));
-    search.addEventListener('focusout', _ => {
-      setIsListVisible(false);
-      setSearchList([]);
-    });
+    search.addEventListener('focusout', _ => setIsListVisible(false));
   }, []);
 
   return (
@@ -87,6 +77,7 @@ const Wrap = styled.div`
   width: 100%;
   margin: 0 auto;
   height: 100vh;
+  overflow-y: scroll;
   display: flex;
   justify-content: center;
   background-color: #caeaff;
@@ -95,7 +86,7 @@ const Wrap = styled.div`
 const InnerWrap = styled.div`
   width: 100%;
   max-width: 1040px;
-  padding-top: 160px;
+  padding-top: 140px;
   display: flex;
   flex-direction: column;
 `;
@@ -105,7 +96,7 @@ const TitleWrap = styled.h2`
   font-size: 2.125rem;
   font-weight: 600;
   line-height: 1.6;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 `;
 
 const SearchWrap = styled.div`
