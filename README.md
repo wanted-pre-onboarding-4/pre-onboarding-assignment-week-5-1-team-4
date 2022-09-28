@@ -13,8 +13,7 @@
 
 
 ## 🎬 프로젝트 데모
-
-![임상](/Users/seoljaehyeok/Desktop/임상.gif)
+![임상](https://user-images.githubusercontent.com/71430291/192799420-cffef8fa-0e79-4ffc-bd9d-ec3760dd596e.gif)
 
 
 
