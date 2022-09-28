@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { BiSearchAlt2 } from 'react-icons/bi';
 import styled from 'styled-components';
@@ -10,7 +10,7 @@ const ArrowUp = 'ArrowUp';
 const Escape = 'Escape';
 
 export default function Search() {
-  const [isListVisible] = useState(true);
+  const [isListVisible, setIsListVisible] = useState(false);
   const [searchWord, setSearchWord] = useState('');
   const [searchList, setSearchList] = useState([]);
   const [index, setIndex] = useState(-1);
@@ -40,6 +40,7 @@ export default function Search() {
   };
 
   const onChangeKeyword = event => {
+    setIndex(-1);
     debounceOnChangeKeyword(event.target.value);
     setSearchWord(event.target.value);
   };
@@ -74,14 +75,14 @@ export default function Search() {
     }
   };
 
-  // useEffect(() => {
-  //   const search = document.querySelector('input[type="search"]');
-  //   search.addEventListener('focusin', _ => setIsListVisible(true));
-  //   search.addEventListener('focusout', _ => {
-  //     setIsListVisible(false);
-  //     setSearchList([]);
-  //   });
-  // }, []);
+  useEffect(() => {
+    const search = document.querySelector('input[type="search"]');
+    search.addEventListener('focusin', _ => setIsListVisible(true));
+    search.addEventListener('focusout', _ => {
+      setIsListVisible(false);
+      setSearchList([]);
+    });
+  }, []);
 
   return (
     <Wrap>
