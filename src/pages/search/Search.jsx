@@ -11,38 +11,33 @@ export default function Search() {
   const [searchList, setSearchList] = useState([]);
 
   const getSearchList = async str => {
-    const cachedData = JSON.parse(sessionStorage.getItem('searchCache'));
+    const cachedData = JSON.parse(sessionStorage.getItem('searchCache' || '{}'));
 
     // 캐싱된 데이터인 경우 캐싱 데이터 사용
-    if (Object.keys(cachedData).includes(str)) return setSearchList(cachedData[str]);
-
-    const res = await axios.get(`http://localhost:4000/sick?q=${str}`);
-
-    if (res.data.length === 0) {
-      setSearchList([]);
-      return;
+    if (cachedData !== null) {
+      if (Object.keys(cachedData).includes(str)) return setSearchList(cachedData[str]);
     }
 
+    const res = await axios.get(`http://localhost:4000/sick?q=${str}`);
     console.info('api calling');
 
-    if (res.data.length > 10) return setSearchList(res.data.slice(0, 10));
-
-    // LocalStorage에 response 결과 캐싱
-    const newObj = { ...JSON.parse(sessionStorage.getItem('searchCache')), [`${str}`]: res.data };
+    // SessionStorage에 response 결과 캐싱
+    const newObj = { ...cachedData, [`${str}`]: res.data };
     sessionStorage.setItem('searchCache', JSON.stringify(newObj));
+
+    if (res.data.length > 10) return setSearchList(res.data.slice(0, 10));
     setSearchList(res.data);
   };
 
   const onChangeKeyword = event => {
-    debounceOnChangeKeyword(event.target.value);
-    setSearchWordBold(event.target.value);
+    const { value } = event.target;
+    if (value) debounceOnChangeKeyword(value);
   };
 
-  const debounceOnChangeKeyword = debounce(async str => {
-    if (str.length === 0) return;
-
-    getSearchList(str);
-  }, 400);
+  const debounceOnChangeKeyword = debounce(async value => {
+    getSearchList(value);
+    setSearchWordBold(value);
+  }, 1000);
 
   useEffect(() => {
     const search = document.querySelector('input[type="search"]');
