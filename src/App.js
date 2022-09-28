@@ -1,5 +1,13 @@
+import Search from './pages/Search';
+import GlobalStyle from './styles/GlobalStyles';
+
 function App() {
-  return <h1>hi</h1>;
+  return (
+    <>
+      <GlobalStyle />
+      <Search />
+    </>
+  );
 }
 
 export default App;
