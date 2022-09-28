@@ -12,11 +12,9 @@ export default function Search() {
   const [searchList, setSearchList] = useState([]);
 
   const getSearchList = async str => {
-    const cachedData = JSON.parse(sessionStorage.getItem('searchCache' || '{}'));
+    const cachedData = JSON.parse(sessionStorage.getItem('searchCache'));
 
-    if (cachedData !== null) {
-      if (Object.keys(cachedData).includes(str)) return setSearchList(cachedData[str]);
-    }
+    if (cachedData && Object.keys(cachedData).includes(str)) return setSearchList(cachedData[str]);
 
     const res = await axios.get(`http://localhost:4000/sick?q=${str}`);
     console.info('api calling');
@@ -37,7 +35,7 @@ export default function Search() {
       return;
     }
     setSearchList([]);
-  }, 1000);
+  }, 500);
 
   useEffect(() => {
     const search = document.querySelector('input[type="search"]');
