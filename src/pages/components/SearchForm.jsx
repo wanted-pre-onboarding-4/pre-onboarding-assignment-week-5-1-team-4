@@ -61,9 +61,13 @@ const SearchForm = ({
     }
 
     const getApi = async () => {
-      const results = await searchApi(debouncedSearchText);
-      setSearches(prev => ({ ...prev, [debouncedSearchText]: results.data }));
-      setResults(results.data);
+      try {
+        const results = await searchApi(debouncedSearchText);
+        setSearches(prev => ({ ...prev, [debouncedSearchText]: results.data }));
+        setResults(results.data);
+      } catch (e) {
+        alert(e.message);
+      }
     };
     getApi();
   }, [debouncedSearchText]);
