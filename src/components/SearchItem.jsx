@@ -14,5 +14,7 @@ const SearchItem = React.forwardRef(({ result, searchText, isFocus }, ref) => {
 export default SearchItem;
 
 const Item = styled.div`
-  background-color: ${({ isFocus }) => (isFocus ? 'skyblue' : 'white')};
+  padding: 6px 0;
+  font-size: 14px;
+  background-color: ${({ isFocus }) => (isFocus ? '#ddf1ff' : 'white')};
 `;

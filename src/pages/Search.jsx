@@ -86,7 +86,10 @@ const Search = () => {
 
   return (
     <Wrap>
-      <Title>국내 모든 임상시험 검색하고 온라인으로 참여하기</Title>
+      <TitleWrap>
+        <Title>국내 모든 임상시험 검색하고</Title> <Title> 온라인으로 참여하기</Title>
+      </TitleWrap>
+
       <SearchSection onSubmit={onSearchSubmit}>
         <SearchInput
           onChange={onSearchChange}
@@ -100,20 +103,22 @@ const Search = () => {
           <BiSearch />
         </Button>
       </SearchSection>
-      <SearchResult>
-        <SearchListTitle>추천 검색어</SearchListTitle>
-        {results.length === 0 || searchText === '' ? (
-          <div>검색어 없음</div>
-        ) : (
-          <SearchList
-            ref={scrollRef}
-            results={results}
-            index={index}
-            setResults={setResults}
-            searchText={searchText}
-          />
-        )}
-      </SearchResult>
+      {searchText.length !== 0 ? (
+        <SearchResult>
+          <SearchListTitle>추천 검색어</SearchListTitle>
+          {results.length === 0 || searchText === '' ? (
+            <NoResult>검색어 없음</NoResult>
+          ) : (
+            <SearchList
+              ref={scrollRef}
+              results={results}
+              index={index}
+              setResults={setResults}
+              searchText={searchText}
+            />
+          )}
+        </SearchResult>
+      ) : null}
     </Wrap>
   );
 };
@@ -121,29 +126,40 @@ const Search = () => {
 const Wrap = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
   background-color: #cae9ff;
   width: 100%;
   height: 100vh;
   row-gap: 1.5em;
+  background-image: url('/img/character1.svg'), url('/img/character2.svg'),
+    url('/img/character3.svg'), url('/img/character3.svg');
+  background-size: 16%, 16%, 17%;
+  background-repeat: no-repeat;
+  background-position: 16% 60%, 48% 89%, 83% 65%;
 `;
 
-const Title = styled.h1`
+const TitleWrap = styled.div`
   margin: 0 auto;
   display: block;
+  margin-top: 9em;
+`;
+const Title = styled.h1`
+  text-align: center;
   font-weight: 700;
-  font-size: 1.5em;
-  margin-top: 90px;
+  line-height: 1.5em;
+  font-size: 2em;
 `;
 const SearchSection = styled.form`
   display: flex;
+  position: relative;
   align-items: center;
   background-color: white;
-  padding: 14px 10px;
+  padding: 20px 34px;
   border-radius: 40px;
   width: 480px;
   margin: 0 auto;
   column-gap: 3em;
+  font-size: 1.7em;
+  box-shadow: 7px 7px 9px #bcd9ed, -7px -7px 9px #d8f9ff;
 `;
 
 const SearchInput = styled.input`
@@ -154,6 +170,8 @@ const SearchInput = styled.input`
 `;
 
 const Button = styled.button`
+  position: absolute;
+  right: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -164,16 +182,23 @@ const Button = styled.button`
   color: white;
   font-size: 20px;
   border: none;
+  cursor: pointer;
 `;
 
 const SearchResult = styled.div`
   margin: 0 auto;
   width: 480px;
-  background-color: white;
   border-radius: 20px;
-  padding: 20px;
+  padding: 30px;
+  background-color: white;
+  box-shadow: 7px 7px 9px #bcd9ed, -7px -7px 9px #d8f9ff;
+  z-index: 2;
 `;
 
+const NoResult = styled.p`
+  margin-top: 1.3em;
+  font-size: 14px;
+`;
 const SearchListTitle = styled.h2`
   color: grey;
   font-size: 12px;

@@ -19,8 +19,8 @@ const SearchList = React.forwardRef(({ results, index, searchText }, ref) => {
 });
 
 const Container = styled.div`
-  padding: 14px 0;
+  margin-top: 14px;
   overflow-y: auto;
-  max-height: 300px;
+  max-height: 280px;
 `;
 export default SearchList;
