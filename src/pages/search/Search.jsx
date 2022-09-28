@@ -4,6 +4,7 @@ import { BiSearchAlt2 } from 'react-icons/bi';
 import styled from 'styled-components';
 import { debounce } from 'lodash';
 import SearchResultList from './components/SearchResultList';
+import { cacheToSession } from '../../utils/cacheToSession';
 
 export default function Search() {
   const [isListVisible, setIsListVisible] = useState(false);
@@ -13,7 +14,6 @@ export default function Search() {
   const getSearchList = async str => {
     const cachedData = JSON.parse(sessionStorage.getItem('searchCache' || '{}'));
 
-    // 캐싱된 데이터인 경우 캐싱 데이터 사용
     if (cachedData !== null) {
       if (Object.keys(cachedData).includes(str)) return setSearchList(cachedData[str]);
     }
@@ -21,31 +21,28 @@ export default function Search() {
     const res = await axios.get(`http://localhost:4000/sick?q=${str}`);
     console.info('api calling');
 
-    // SessionStorage에 response 결과 캐싱
-    const newObj = { ...cachedData, [`${str}`]: res.data };
-    sessionStorage.setItem('searchCache', JSON.stringify(newObj));
-
-    if (res.data.length > 10) return setSearchList(res.data.slice(0, 10));
-    setSearchList(res.data);
+    const searchResult = cacheToSession(res.data, cachedData, str);
+    setSearchList(searchResult);
   };
 
   const onChangeKeyword = event => {
     const { value } = event.target;
-    if (value) debounceOnChangeKeyword(value);
+    debounceOnChangeKeyword(value);
   };
 
   const debounceOnChangeKeyword = debounce(async value => {
-    getSearchList(value);
-    setSearchWordBold(value);
+    if (value) {
+      getSearchList(value);
+      setSearchWordBold(value);
+      return;
+    }
+    setSearchList([]);
   }, 1000);
 
   useEffect(() => {
     const search = document.querySelector('input[type="search"]');
     search.addEventListener('focusin', _ => setIsListVisible(true));
-    search.addEventListener('focusout', _ => {
-      setIsListVisible(false);
-      setSearchList([]);
-    });
+    search.addEventListener('focusout', _ => setIsListVisible(false));
   }, []);
 
   return (
@@ -82,6 +79,7 @@ const Wrap = styled.div`
   width: 100%;
   margin: 0 auto;
   height: 100vh;
+  overflow-y: scroll;
   display: flex;
   justify-content: center;
   background-color: #caeaff;
@@ -90,7 +88,7 @@ const Wrap = styled.div`
 const InnerWrap = styled.div`
   width: 100%;
   max-width: 1040px;
-  padding-top: 160px;
+  padding-top: 140px;
   display: flex;
   flex-direction: column;
 `;
@@ -100,7 +98,7 @@ const TitleWrap = styled.h2`
   font-size: 2.125rem;
   font-weight: 600;
   line-height: 1.6;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 `;
 
 const SearchWrap = styled.div`
