@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import useDebounce from '../../hooks/useDebounce';
 import searchApi from '../../services/api';
@@ -19,7 +19,7 @@ const SearchForm = ({
   setResults,
 }) => {
   const { searches, setSearches } = useContext(SearchContext);
-
+  const [isComposing, setIsComposing] = useState(false);
   const debouncedSearchText = useDebounce(searchText, 200);
 
   const onSearchSubmit = e => {
@@ -34,6 +34,8 @@ const SearchForm = ({
   };
 
   const handleKeyArrow = e => {
+    if (isComposing) return;
+
     if (results.length <= 0) return;
     switch (e.key) {
       case ArrowDown:
@@ -83,6 +85,8 @@ const SearchForm = ({
         value={searchText}
         placeholder="🔍 검색어를 입력해주세요"
         onKeyDown={handleKeyArrow}
+        onCompositionStart={() => setIsComposing(true)}
+        onCompositionEnd={() => setIsComposing(false)}
         autoFocus
       ></SearchInput>
       <Button>
