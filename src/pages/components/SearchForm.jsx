@@ -64,7 +64,7 @@ const SearchForm = ({
     }
 
     const getApi = async () => {
-      console.log('api 출력');
+      console.info('api 출력');
       try {
         let results = await searchApi(debouncedSearchText);
         const filteredData = results.data.filter(
