@@ -1,14 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import axios from 'axios';
 import { BiSearchAlt2 } from 'react-icons/bi';
 import styled from 'styled-components';
 import { debounce } from 'lodash';
 import SearchResultList from './components/SearchResultList';
 
+const ArrowDown = 'ArrowDown';
+const ArrowUp = 'ArrowUp';
+const Escape = 'Escape';
+
 export default function Search() {
-  const [isListVisible, setIsListVisible] = useState(false);
-  const [searchWordBold, setSearchWordBold] = useState('');
+  const [isListVisible] = useState(true);
+  const [searchWord, setSearchWord] = useState('');
   const [searchList, setSearchList] = useState([]);
+  const [index, setIndex] = useState(-1);
+  const resultRef = useRef(null);
 
   const getSearchList = async str => {
     const cachedData = JSON.parse(sessionStorage.getItem('searchCache'));
@@ -35,7 +41,7 @@ export default function Search() {
 
   const onChangeKeyword = event => {
     debounceOnChangeKeyword(event.target.value);
-    setSearchWordBold(event.target.value);
+    setSearchWord(event.target.value);
   };
 
   const debounceOnChangeKeyword = debounce(async str => {
@@ -44,14 +50,38 @@ export default function Search() {
     getSearchList(str);
   }, 400);
 
-  useEffect(() => {
-    const search = document.querySelector('input[type="search"]');
-    search.addEventListener('focusin', _ => setIsListVisible(true));
-    search.addEventListener('focusout', _ => {
-      setIsListVisible(false);
-      setSearchList([]);
-    });
-  }, []);
+  const handleKeyArrow = e => {
+    if (searchList.length > 0) {
+      switch (e.key) {
+        case ArrowDown:
+          setIndex(prev => prev + 1);
+          if (resultRef.current?.childElementCount === index + 1) setIndex(0);
+          break;
+        case ArrowUp:
+          setIndex(prev => prev - 1);
+          if (index <= 0) {
+            setSearchList([]);
+            setIndex(-1);
+          }
+          break;
+        case Escape:
+          setSearchList([]);
+          setIndex(-1);
+          break;
+        default:
+          return;
+      }
+    }
+  };
+
+  // useEffect(() => {
+  //   const search = document.querySelector('input[type="search"]');
+  //   search.addEventListener('focusin', _ => setIsListVisible(true));
+  //   search.addEventListener('focusout', _ => {
+  //     setIsListVisible(false);
+  //     setSearchList([]);
+  //   });
+  // }, []);
 
   return (
     <Wrap>
@@ -68,6 +98,7 @@ export default function Search() {
                 type="search"
                 placeholder="🔍 질환명을 입력해 주세요."
                 onChange={onChangeKeyword}
+                onKeyDown={handleKeyArrow}
               />
             </InputWrap>
             <Button>
@@ -75,7 +106,12 @@ export default function Search() {
             </Button>
           </Border>
           {isListVisible && (
-            <SearchResultList searchList={searchList} searchWordBold={searchWordBold} />
+            <SearchResultList
+              ref={resultRef}
+              index={index}
+              searchList={searchList}
+              searchWord={searchWord}
+            />
           )}
         </SearchWrap>
       </InnerWrap>

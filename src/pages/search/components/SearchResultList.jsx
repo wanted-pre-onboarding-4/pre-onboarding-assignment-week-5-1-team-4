@@ -3,12 +3,12 @@ import { BiSearchAlt2 } from 'react-icons/bi';
 import styled from 'styled-components';
 import { highlightIncludedText } from '../../../utils/func';
 
-const SearchResultList = ({ searchList, searchWordBold }) => {
+const SearchResultList = React.forwardRef(({ index, searchList, searchWord }, ref) => {
   return (
     <SearchListWrap>
       <List>
         {searchList.length === 0 ? (
-          <ul>
+          <ul ref={ref}>
             <li>
               <ListItem>
                 <BiSearchAlt2 fill="#a7afb7" />
@@ -17,12 +17,14 @@ const SearchResultList = ({ searchList, searchWordBold }) => {
             </li>
           </ul>
         ) : (
-          <ul>
-            {searchList?.map(item => (
+          <ul ref={ref}>
+            {searchList?.map((item, idx) => (
               <li key={item.sickCd}>
                 <ListItem>
                   <BiSearchAlt2 fill="#a7afb7" />
-                  <Item>{highlightIncludedText(item.sickNm, searchWordBold)}</Item>
+                  <Item isFocus={index === idx}>
+                    {highlightIncludedText(item.sickNm, searchWord)}
+                  </Item>
                 </ListItem>
               </li>
             ))}
@@ -31,7 +33,7 @@ const SearchResultList = ({ searchList, searchWordBold }) => {
       </List>
     </SearchListWrap>
   );
-};
+});
 
 const SearchListWrap = styled.div`
   width: 100%;
@@ -43,6 +45,8 @@ const SearchListWrap = styled.div`
   border-color: #ffffff;
   background-color: #ffffff;
   box-shadow: 0 1px 6px 0 rgba(147, 150, 160, 0.28);
+  overflow-y: auto;
+  max-height: 300px;
 `;
 
 const List = styled.div`
@@ -72,6 +76,7 @@ const ListItem = styled.div`
 
 const Item = styled.div`
   margin-left: 8px;
+  background-color: ${props => (props.isFocus ? '#caeaff' : '#fff')};
 `;
 
 export default SearchResultList;
