@@ -47,6 +47,7 @@ const SearchForm = ({
         scrollRef.current?.scrollIntoView({ bebehavior: 'smooth', block: 'center' });
         break;
       case Escape: // esc key를 눌렀을때,
+        setSearchText('');
         setResults([]);
         setIndex(-1);
         break;
