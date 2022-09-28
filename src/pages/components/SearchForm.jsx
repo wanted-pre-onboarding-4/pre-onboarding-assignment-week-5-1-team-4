@@ -61,10 +61,14 @@ const SearchForm = ({
     }
 
     const getApi = async () => {
+      console.log('api 출력');
       try {
-        const results = await searchApi(debouncedSearchText);
-        setSearches(prev => ({ ...prev, [debouncedSearchText]: results.data }));
-        setResults(results.data);
+        let results = await searchApi(debouncedSearchText);
+        const filteredData = results.data.filter(
+          result => !result.sickCd.includes(debouncedSearchText.toUpperCase())
+        );
+        setSearches(prev => ({ ...prev, [debouncedSearchText]: filteredData }));
+        setResults(filteredData);
       } catch (e) {
         alert(e.message);
       }
